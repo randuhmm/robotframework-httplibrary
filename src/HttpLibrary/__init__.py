@@ -59,9 +59,9 @@ class HTTP:
             # False -> request should not succeed
             # string -> response status code should startwith(string)
             self.next_request_should = None
-
-            # setup new http context
-            self.post_process_request(None)
+            self.request_body = None
+            self.request_headers = {}
+            # self.post_process_request(None)
 
         def pre_process_request(self):
             if len(self.request_headers.items()) > 0:
@@ -80,7 +80,7 @@ class HTTP:
         def post_process_request(self, response):
             self.response = response
 
-            if response != None:
+            if response is not None:
                 self._http.log_response_status('DEBUG')
                 self._http.log_response_headers('DEBUG')
                 self._http.log_response_body('DEBUG')
@@ -89,20 +89,17 @@ class HTTP:
 
             # prepare next request context, even if one of the following assertions
             # fail
-            self.next_request_should = True
-            self.request_headers = {}
-            if self._host != None:
+            if self._host is not None:
                 self.request_headers['Host'] = self._host
-            self.request_body = None
 
             # check flag set by "Next Request Should Succeed"
-            if next_request_should == True:
+            if next_request_should is True:
                 assert int(self.response.status[0:3]) < 400, \
                     'Request should have succeeded, but was "%s".' % \
                     self.response.status
 
             # check flag set by "Next Request Should Not Succeed"
-            elif next_request_should == False:
+            elif next_request_should is False:
                 assert int(self.response.status[0:3]) >= 400, \
                     'Request should not have succeeded, but was "%s".' % \
                     self.response.status
