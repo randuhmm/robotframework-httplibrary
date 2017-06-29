@@ -38,6 +38,7 @@ class HTTP:
     ROBOT_LIBRARY_VERSION = "0.4.2"
 
     class Context(object):
+
         def __init__(self, http, host=None, scheme='http'):
             # daddy
             self._http = http
@@ -52,7 +53,9 @@ class HTTP:
 
             # the last request
             self.response = None
+            self.reset_context()
 
+        def reset_context(self):
             # requirements for the next request
             # None -> no requirements
             # True -> request should succeed
@@ -61,7 +64,8 @@ class HTTP:
             self.next_request_should = None
             self.request_body = None
             self.request_headers = {}
-            # self.post_process_request(None)
+            if self._host is not None:
+                self.request_headers['Host'] = self._host
 
         def pre_process_request(self):
             if len(self.request_headers.items()) > 0:
@@ -79,18 +83,15 @@ class HTTP:
 
         def post_process_request(self, response):
             self.response = response
-
             if response is not None:
                 self._http.log_response_status('DEBUG')
                 self._http.log_response_headers('DEBUG')
                 self._http.log_response_body('DEBUG')
-
             next_request_should = self.next_request_should
 
-            # prepare next request context, even if one of the following assertions
-            # fail
-            if self._host is not None:
-                self.request_headers['Host'] = self._host
+            # prepare next request context, even if one of the following
+            # assertions fail
+            self.reset_context()
 
             # check flag set by "Next Request Should Succeed"
             if next_request_should is True:
